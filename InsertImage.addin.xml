@@ -1,0 +1,25 @@
+<Addin id="InsertImage"
+	namespace="Tomboy"
+	name="Insert Images"
+	author="Matt Guo"
+	description="Insert image contents or links at the cursor position."
+	category="Tools"
+	defaultEnabled="true"
+	version="0.2">
+
+	<Runtime>
+		<Import assembly="InsertImage.dll" />
+	</Runtime>
+
+	<Dependencies>
+		<Addin id="Tomboy" version="0.10" />
+	</Dependencies>
+
+	<Extension path="/Tomboy/NoteAddins">
+		<NoteAddin type="Tomboy.InsertImage.InsertImageNoteAddin" />
+	</Extension>
+
+	<Extension path="/Tomboy/AddinPreferences">
+		<AddinPreferenceFactory type="Tomboy.InsertImage.InsertImagePreferencesFactory" />
+	</Extension>
+</Addin>
