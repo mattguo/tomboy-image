@@ -1,6 +1,19 @@
 1. Error Messaging/Reporting
 2. Undo/Redo for Deleting Images
-3. Image sync
+3. Image sync (Why can't sync now? Because in Note:
+                public string Text
+		{
+			get {
+				SynchronizeText ();
+				return data.Text;
+			}
+			set {
+				data.Text = value;
+				SynchronizeBuffer ();
+			}
+		}
+My approach of appending data to the harddisk file won't change the result of Note.Text
+
 4. Web Image Async Download
 5. Elegant display for "can't be loaded" images
 6. More functional ImageWidget
