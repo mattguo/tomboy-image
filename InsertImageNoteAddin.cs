@@ -15,18 +15,8 @@ namespace Tomboy.InsertImage
 		Gtk.ImageMenuItem insertWebImageMenuItem;
 		List<ImageInfo> imageInfoList = new List<ImageInfo> ();
 
-		const string SAVE_HEAD = "\n\n\n[Tomboy.InsertImage]\nThe following content is used by " +
-			"tomboy's InsertImage plugin to save the contents of inserted images.\n";
-		const string SAVE_TAIL = "\n\n[/Tomboy.InsertImage]\n";
-		//List<ImageInfo> deletedImages = new List<ImageInfo> ();
-
-		static InsertImageNoteAddin ()
-		{
-			if (NoteTagTable.Instance.Lookup ("image") == null) {
-				NoteTagTable.Instance.Add (new ImageTag ());
-			}
-		}
-
+		const string SAVE_HEAD = "[Tomboy.InsertImage]";
+		const string SAVE_TAIL = "[/Tomboy.InsertImage]";
 
 		public override void Initialize ()
 		{
@@ -105,7 +95,7 @@ namespace Tomboy.InsertImage
 				var sb = new StringBuilder (4096);
 				int contentEndIndex = fileContent.IndexOf ("</note-content>");
 				sb.Append (fileContent.Substring (0, contentEndIndex));
-				sb.AppendFormat ("<image>{0};", SAVE_HEAD);
+				sb.AppendFormat ("{0};", SAVE_HEAD);
 				imageInfoList.Sort (new ImageInfoComparerByPosition ());
 				foreach (var imageInfo in imageInfoList) {
 					Gdk.Size displaySize = imageInfo.Widget.ImageSize;
@@ -115,7 +105,7 @@ namespace Tomboy.InsertImage
 					sb.Append (imageInfo.SaveAsString());
 					sb.Append (";");
 				}
-				sb.AppendFormat ("{0}</image>", SAVE_TAIL);
+				sb.Append (SAVE_TAIL);
 				sb.Append (fileContent.Substring (contentEndIndex));
 				File.WriteAllText (Note.FilePath, sb.ToString());
 			}
@@ -123,41 +113,33 @@ namespace Tomboy.InsertImage
 
 		private void LoadImageBoxes ()
 		{
-			var imageTag = Buffer.TagTable.Lookup("image");
-			TextIter pos = Buffer.StartIter;
-			pos.ForwardLine ();
-			bool foundTag;
-			TextIter imageBegin, imageEnd;
-			Buffer.Undoer.FreezeUndo ();
-			while (true) {
-				foundTag = pos.ForwardToTagToggle (imageTag);
-				if (!foundTag)
-					break;
-				imageBegin = pos;
-				foundTag = pos.ForwardToTagToggle (imageTag);
-				if (!foundTag)
-					// TODO Report error: can't find </image>
-					break;
-				imageEnd = pos;
-				string imageElementValue = Buffer.GetSlice (imageBegin, imageEnd, true);
-				Buffer.Delete (ref imageBegin, ref imageEnd);
-				pos = imageBegin;
-
-				// TODO, current saveInfo reading is extremely inefficient.
-				foreach (var saveInfo in imageElementValue.Split (new char [] { ';' }, StringSplitOptions.RemoveEmptyEntries)) {
-					if (saveInfo.Trim () == SAVE_HEAD.Trim ())
-						continue;
-					if (saveInfo.Trim () == SAVE_TAIL.Trim ())
-						break;
-					int colonIndex = saveInfo.IndexOf (":");
-					if (colonIndex == -1)
-						throw new FormatException (Catalog.GetString("Invalid <image> format"));
-					int offset = int.Parse (saveInfo.Substring (0, colonIndex));
-					ImageInfo info = ImageInfo.FromSavedString (saveInfo.Substring(colonIndex + 1));
-					InsertImage (Buffer.GetIterAtOffset(offset), info, false);
+			TextIter start = Buffer.StartIter;
+			start.ForwardLine ();
+			TextIter end = Buffer.EndIter;
+			TextIter saveStart, saveEnd, tmpIter;
+			bool foundSaveInfo = start.ForwardSearch(SAVE_HEAD, TextSearchFlags.TextOnly, out saveStart, out tmpIter, end);
+			if (foundSaveInfo) {
+				foundSaveInfo = saveStart.ForwardSearch(SAVE_TAIL, TextSearchFlags.TextOnly, out tmpIter, out saveEnd, end);
+				if (foundSaveInfo) {
+					Buffer.Undoer.FreezeUndo ();
+					string imageElementValue = Buffer.GetSlice (saveStart, saveEnd, true);
+					Buffer.Delete (ref saveStart, ref saveEnd);
+					// TODO, current saveInfo reading is extremely inefficient.
+					foreach (var saveInfo in imageElementValue.Split (new char [] { ';' }, StringSplitOptions.RemoveEmptyEntries)) {
+						if (saveInfo.Trim () == SAVE_HEAD.Trim ())
+							continue;
+						if (saveInfo.Trim () == SAVE_TAIL.Trim ())
+							break;
+						int colonIndex = saveInfo.IndexOf (":");
+						if (colonIndex == -1)
+							throw new FormatException (Catalog.GetString("Invalid <image> format"));
+						int offset = int.Parse (saveInfo.Substring (0, colonIndex));
+						ImageInfo info = ImageInfo.FromSavedString (saveInfo.Substring(colonIndex + 1));
+						InsertImage (Buffer.GetIterAtOffset(offset), info, false);
+					}
+					Buffer.Undoer.ThawUndo ();
 				}
 			}
-			Buffer.Undoer.ThawUndo ();
 		}
 
 		void OnInsertLocalImage (object sender, EventArgs args)

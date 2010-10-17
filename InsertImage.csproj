@@ -78,7 +78,6 @@
     <Compile Include="Action\DeleteImageAction.cs" />
     <Compile Include="ImageInfo.cs" />
     <Compile Include="ImageInfoChooser.cs" />
-    <Compile Include="ImageTag.cs" />
     <Compile Include="Action\InsertImageAction.cs" />
     <Compile Include="InsertImageNoteAddin.cs" />
     <Compile Include="InsertImagePreferences.cs" />
