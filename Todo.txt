@@ -20,6 +20,17 @@ My approach of appending data to the harddisk file won't change the result of No
 
 Known issues:
 1) Can't sync
+NoteConvert.cs, Ln61, 
+
+const string noteContentRegex = @"^<note-content(\s+version=""(?<contentVersion>[^""]*)"")?\s*((/>)|(>(?<innerContent>.*)</note-content>))$";
+Match m = Regex.Match (note.XmlContent, noteContentRegex, RegexOptions.Singleline);
+
+the web sync service just read note.XmlContent (but not the physical file content). And XmlContent is generated as:
+	NoteBufferArchiver.Deserialize (buffer, value);
+And NoteBufferArchiver.Deserialize will only serialize tags in buffer.TagTable.
+
+			
+
 2) If we delete the image with some other texts, the undo/redo DeleteImageAction isn't correctly implemented.
 3) If we insert images consecutively, then they'll be loaded in reverse sequence next time. Or if we do undo/redo after the consecutive insertion, the sequence will also be reversed.
 The reason is due to we insert multiple images to the same offset.
