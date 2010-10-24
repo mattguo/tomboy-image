@@ -58,7 +58,6 @@ namespace Tomboy.InsertImage
 			// TODO can Tomboy allow me to access frozen_cnt?
 			//if (Buffer.Undoer.frozen_cnt == 0) ...
 			var iter = args.Start;
-			//DeleteImageAction action = null;
 			var imagesToDel = new List<ImageInfo> ();
 			while (iter.Offset < args.End.Offset) {
 				foreach (var mark in iter.Marks) {
@@ -66,8 +65,8 @@ namespace Tomboy.InsertImage
 						if (mark == imageInfo.Mark) {
 							//An embeded image is deleted.
 							// TODO implement Undo/Redo delete image action.
-							//action = new DeleteImageAction (this, imageInfo, imageInfoList);
-							//Buffer.Undoer.AddUndoAction (action);
+							var action = new DeleteImageAction (this, imageInfo, imageInfoList);
+							Buffer.Undoer.AddUndoAction (action);
 							imagesToDel.Add (imageInfo);
 						}
 					}
@@ -134,7 +133,7 @@ namespace Tomboy.InsertImage
 						if (colonIndex == -1)
 							throw new FormatException (Catalog.GetString("Invalid <image> format"));
 						int offset = int.Parse (saveInfo.Substring (0, colonIndex));
-						ImageInfo info = ImageInfo.FromSavedString (saveInfo.Substring(colonIndex + 1));
+						ImageInfo info = ImageInfo.FromSavedString (saveInfo.Substring(colonIndex + 1), true);
 						InsertImage (Buffer.GetIterAtOffset(offset), info, false);
 					}
 					Buffer.Undoer.ThawUndo ();
@@ -181,12 +180,18 @@ namespace Tomboy.InsertImage
 				return null;
 			}
 
+			if (imageInfo.DisplayWidth == 0) {
+				imageInfo.DisplayWidth = pixbuf.Width;
+				imageInfo.DisplayHeight = pixbuf.Height;
+			}
+
 			var imageWidget = new ImageWidget (pixbuf);
+
 			imageWidget.ResizeImage (imageInfo.DisplayWidth, imageInfo.DisplayHeight);
 			imageWidget.ShowAll ();
 
 
-			imageInfo.Mark = Buffer.CreateMark (null, iter, true);
+			imageInfo.Mark = Buffer.CreateMark (string.Format ("img {0}", Guid.NewGuid()), iter, true);
 
 			ImageBoxTag tag = (ImageBoxTag)Note.TagTable.CreateDynamicTag ("imagebox");
 			tag.ImageInfo = imageInfo;

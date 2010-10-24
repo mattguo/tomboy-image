@@ -16,6 +16,9 @@ namespace Tomboy.InsertImage
 			base.Initialize (element_name);
 			this.CanSerialize = false;
 			this.CanSpellCheck = false;
+			//this.CanGrow = false;
+			//this.CanSplit = false;
+			//this.Editable = false;
 		}
 		
 		public ImageInfo ImageInfo { get; set; }

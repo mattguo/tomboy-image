@@ -5,6 +5,7 @@ using Mono.Unix;
 using System.Net;
 using System.Text;
 using System.Collections.Generic;
+using System.Reflection;
 
 namespace Tomboy.InsertImage
 {
@@ -15,7 +16,7 @@ namespace Tomboy.InsertImage
 			ImageInfo info = new ImageInfo ();
 			info.FilePath = path;
 			info.UseExternalLink = useExternalLink;
-			info.IsLocalFile = false;
+			info.IsLocalFile = true;
 			info.FileContent = File.ReadAllBytes (path);
 			return info;
 		}
@@ -25,11 +26,12 @@ namespace Tomboy.InsertImage
 			ImageInfo info = new ImageInfo ();
 			info.FilePath = address;
 			info.UseExternalLink = useExternalLink;
+			info.IsLocalFile = false;
 			info.LoadFromWeb (address);
 			return info;
 		}
 
-		internal static ImageInfo FromSavedString (string savedInfo)
+		internal static ImageInfo FromSavedString (string savedInfo, bool ignoreContentError)
 		{
 			var fields = savedInfo.Split (new char [] { ',' });
 			if (fields.Length != 6)
@@ -51,15 +53,34 @@ namespace Tomboy.InsertImage
 				} else
 					info.LoadFromWeb (info.FilePath);
 			} catch (FileNotFoundException) {
-				throw;
+				if (ignoreContentError)
+					SetMissingImage (info);
+				else
+					throw;
 			} catch (IOException) {
-				throw;
+				if (ignoreContentError)
+					SetMissingImage (info);
+				else
+					throw;
 			} catch (WebException) {
-				throw;
+				if (ignoreContentError)
+					SetMissingImage (info);
+				else
+					throw;
 			} catch {
 				throw new FormatException (Catalog.GetString ("Invalid ImageInfo Format."));
 			}
 			return info;
+		}
+
+		private static void SetMissingImage (ImageInfo info)
+		{
+			var imgStream =
+				typeof (ImageInfo).Assembly.GetManifestResourceStream ("Tomboy.InsertImage.missing-image.png");
+			byte[] bytes = new Byte[imgStream.Length];
+			imgStream.Read(bytes, 0, (int)imgStream.Length);
+			info.FileContent = bytes;
+			imgStream.Close ();
 		}
 
 		private void LoadFromWeb (string address)

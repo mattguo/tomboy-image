@@ -35,17 +35,24 @@ namespace Tomboy.InsertImage.Action
 
 		public void Redo (Gtk.TextBuffer buffer)
 		{
-			throw new NotImplementedException ();
+			imageInfoList.Remove (imageInfo);
+
+			TextIter imageBoxBegin = buffer.GetIterAtMark (imageInfo.Mark);
+			TextIter imageBoxEnd = imageBoxBegin;
+			bool ret = imageBoxEnd.ForwardChar ();
+			buffer.Delete (ref imageBoxBegin, ref imageBoxEnd);
+			buffer.MoveMark (buffer.InsertMark, imageBoxBegin);
+			buffer.MoveMark (buffer.SelectionBound, imageBoxBegin);
 		}
 
 		public void Merge (EditAction action)
 		{
-			innerAction = action;
+			throw new Exception ("DeleteImageAction cannot be merged");
 		}
 
 		public bool CanMerge (EditAction action)
 		{
-			return true;
+			return false;
 		}
 
 		public void Destroy ()

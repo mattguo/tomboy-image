@@ -2,6 +2,8 @@
 using System.Collections;
 using Gtk;
 using Gdk;
+using Mono.Unix;
+
 namespace Tomboy.InsertImage
 {
 	public class ImageWidget : EventBox
@@ -19,6 +21,8 @@ namespace Tomboy.InsertImage
 		Cursor cursorY = new Cursor (CursorType.BottomSide);
 		Cursor cursorXY = new Cursor (CursorType.BottomRightCorner);
 		Cursor cursorNormal = new Cursor (CursorType.Arrow);
+
+		Gtk.Menu contextMenu = null;
 
 		Gdk.Size imageSize;
 
@@ -38,6 +42,38 @@ namespace Tomboy.InsertImage
 			imageSize = child.Allocation.Size;
 		}
 
+		public Gtk.Menu ContextMenu
+		{
+			get
+			{
+				if (contextMenu == null) {
+					contextMenu = new Menu ();
+					var accel_group = new Gtk.AccelGroup ();
+					contextMenu.AccelGroup = accel_group;
+
+					Gtk.ImageMenuItem resumeSize = new Gtk.ImageMenuItem (
+						Catalog.GetString ("Resume Size"));
+					resumeSize.Image = new Gtk.Image (Gtk.Stock.Zoom100, Gtk.IconSize.Menu);
+					resumeSize.Activated += (o, e) => ResumeImageSize ();
+					//resumeSize.AddAccelerator ("activate",
+					//                       accel_group,
+					//                       (uint) Gdk.Key.r,
+					//                       Gdk.ModifierType.ControlMask,
+					//                       Gtk.AccelFlags.Visible);
+					contextMenu.Append (resumeSize);
+
+					Gtk.ImageMenuItem saveAs = new Gtk.ImageMenuItem (
+						Catalog.GetString ("Save as..."));
+					saveAs.Image = new Gtk.Image (Gtk.Stock.SaveAs, Gtk.IconSize.Menu);
+					saveAs.Activated += (o, e) => SaveImage ();
+					contextMenu.Append (saveAs);
+
+					contextMenu.ShowAll ();
+				}
+				return contextMenu;
+			}
+		}
+
 		public Gdk.Size ImageSize
 		{
 			get
@@ -50,10 +86,10 @@ namespace Tomboy.InsertImage
 
 		public void ResumeImageSize ()
 		{
-			child.Pixbuf = originalPixbuf;
-			child.SetSizeRequest (originalPixbuf.Width, originalPixbuf.Height);
-			imageSize.Width = originalPixbuf.Width;
-			imageSize.Height = originalPixbuf.Height;
+			int oldWidth = child.Allocation.Width;
+			int oldHeight = child.Allocation.Height;
+			ResumeImageSizeCore ();
+			OnResized (oldWidth, oldHeight, originalPixbuf.Width, originalPixbuf.Height);
 		}
 
 		public void ResizeImage (int width, int height)
@@ -61,7 +97,7 @@ namespace Tomboy.InsertImage
 			if (width <= 0 || height <= 0)
 				return;
 			if (width == originalPixbuf.Width && height == originalPixbuf.Height)
-				ResumeImageSize ();
+				ResumeImageSizeCore ();
 			else
 				ResizeImage (width, height, InterpType.Bilinear);
 		}
@@ -75,9 +111,17 @@ namespace Tomboy.InsertImage
 			//QueueDraw ();
 		}
 
+		private void ResumeImageSizeCore ()
+		{
+			child.Pixbuf = originalPixbuf;
+			child.SetSizeRequest (originalPixbuf.Width, originalPixbuf.Height);
+			imageSize.Width = originalPixbuf.Width;
+			imageSize.Height = originalPixbuf.Height;
+		}
+
 		private void OnResized (int oldWidth, int oldHeight, int newWidth, int newHeight)
 		{
-			if (Resized != null) {
+			if (Resized != null && ((oldWidth != newWidth) || (oldHeight != newHeight))) {
 				ResizeEventArgs arg = new ResizeEventArgs (oldWidth, oldHeight, newWidth, newHeight);
 				Resized (this, arg);
 			}
@@ -132,9 +176,8 @@ namespace Tomboy.InsertImage
 		protected override bool OnButtonPressEvent (Gdk.EventButton ev)
 		{
 			Gdk.Rectangle rectArea = child.Allocation;
-
-			if (AllowResize) {
-				if (ev.Button == 1) {
+			if (ev.Button == 1) {
+				if (AllowResize) {
 					// Left button click
 					Rectangle rect = GetAreaResizeXY ();
 					if (rect.Contains ((int)ev.X, (int)ev.Y)) {
@@ -192,14 +235,23 @@ namespace Tomboy.InsertImage
 					int newHeight = child.Allocation.Height;
 					ResizeImage (newWidth, newHeight);
 					OnResized (oldChildWidth, oldChildHeight, newWidth, newHeight);
-				} else if (ev.Button != 1) {
-					int oldWidth = child.Allocation.Width;
-					int oldHeight = child.Allocation.Height;
-					ResumeImageSize ();
-					OnResized (oldWidth, oldHeight, originalPixbuf.Width, originalPixbuf.Height);
+				} else if (ev.Button == 3) {
+					ContextMenu.Popup ();
 				}
+				//} else if (ev.Button != 1) {
+				//    int oldWidth = child.Allocation.Width;
+				//    int oldHeight = child.Allocation.Height;
+				//    ResumeImageSize ();
+				//    OnResized (oldWidth, oldHeight, originalPixbuf.Width, originalPixbuf.Height);
+				//}
 			}
 			return base.OnButtonReleaseEvent (ev);
+		}
+
+		private void SaveImage ()
+		{
+			// TODO
+			Message.Error ("Not implemented yet.");
 		}
 	}
 }

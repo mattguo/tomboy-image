@@ -15,5 +15,11 @@
 My approach of appending data to the harddisk file won't change the result of Note.Text
 
 4. Web Image Async Download
-5. Elegant display for "can't be loaded" images
-6. More functional ImageWidget
+5. Show Image Info in the ImageWidget's context menu.
+
+
+Known issues:
+1) Can't sync
+2) If we delete the image with some other texts, the undo/redo DeleteImageAction isn't correctly implemented.
+3) If we insert images consecutively, then they'll be loaded in reverse sequence next time. Or if we do undo/redo after the consecutive insertion, the sequence will also be reversed.
+The reason is due to we insert multiple images to the same offset.
