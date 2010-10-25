@@ -83,6 +83,10 @@ namespace Tomboy.InsertImage
 			imgStream.Close ();
 		}
 
+		private TextChildAnchor anchor = null;
+		private NoteBuffer buffer = null;
+		private ImageWidget widget = null;
+
 		private void LoadFromWeb (string address)
 		{
 			WebClient wc = new WebClient ();
@@ -102,15 +106,33 @@ namespace Tomboy.InsertImage
 		public int DisplayWidth { get; set; }
 		public int DisplayHeight { get; set; }
 
-		public TextMark Mark { get; set; }
+		public void SetInBufferInfo (NoteBuffer buffer, TextChildAnchor anchor, ImageWidget widget)
+		{
+			this.buffer = buffer;
+			this.anchor = anchor;
+			this.widget = widget;
+		}
 
-		public ImageWidget Widget { get; set; }
+		public TextChildAnchor Anchor { get { return anchor; } }
+		public NoteBuffer Buffer { get { return buffer; } }
+		public ImageWidget Widget { get { return widget; } }
 
 		public int Position
 		{
 			get
 			{
-				return Mark.Buffer.GetIterAtMark (Mark).Offset;
+				if (anchor == null)
+					throw new Exception ("[Position.get] ImageInfo.Anchor not initialized");
+				var iter = buffer.StartIter;
+				var pos = 0;
+				while (true) {
+					if (iter.ChildAnchor == Anchor) {
+						return pos;
+					}
+					if (!iter.ForwardChar ())
+						throw new Exception ("[Position.get] Not found in the buffer");
+					pos++;
+				}
 			}
 		}
 

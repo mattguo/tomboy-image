@@ -20,8 +20,6 @@ namespace Tomboy.InsertImage
 
 		public override void Initialize ()
 		{
-			if (!Note.TagTable.IsDynamicTagRegistered ("imagebox"))
-				Note.TagTable.RegisterDynamicTag ("imagebox", typeof (ImageBoxTag));
 		}
 
 		public override void OnNoteOpened ()
@@ -60,22 +58,28 @@ namespace Tomboy.InsertImage
 			var iter = args.Start;
 			var imagesToDel = new List<ImageInfo> ();
 			while (iter.Offset < args.End.Offset) {
-				foreach (var mark in iter.Marks) {
-					foreach (var imageInfo in imageInfoList) {
-						if (mark == imageInfo.Mark) {
-							//An embeded image is deleted.
-							// TODO implement Undo/Redo delete image action.
-							var action = new DeleteImageAction (this, imageInfo, imageInfoList);
-							Buffer.Undoer.AddUndoAction (action);
-							imagesToDel.Add (imageInfo);
-						}
-					}
+				var imageInfo = FindImageInfoByAnchor (iter.ChildAnchor);
+				if (imageInfo != null) {
+					var action = new DeleteImageAction (this, imageInfo, imageInfoList, args.Start.Offset);
+					Buffer.Undoer.AddUndoAction (action);
+					imagesToDel.Add (imageInfo);
 				}
 				if (!iter.ForwardChar ())
 					break;
 			}
 			foreach (var info in imagesToDel)
 				imageInfoList.Remove (info);
+		}
+
+		private ImageInfo FindImageInfoByAnchor (TextChildAnchor anchor)
+		{
+			if (anchor == null)
+				return null;
+			foreach (var info in imageInfoList) {
+				if (info.Anchor == anchor)
+					return info;
+			}
+			return null;
 		}
 
 		public override void Shutdown ()
@@ -167,7 +171,7 @@ namespace Tomboy.InsertImage
 			InsertImage (currentIter, imageInfo, true);
 		}
 
-		public ImageBoxTag InsertImage (TextIter iter, ImageInfo imageInfo, bool supportUndo)
+		public void InsertImage (TextIter iter, ImageInfo imageInfo, bool supportUndo)
 		{
 			Gdk.Pixbuf pixbuf = null;
 			try {
@@ -177,7 +181,7 @@ namespace Tomboy.InsertImage
 			}
 			if (pixbuf == null) {
 				// TODO: Report the open image error.
-				return null;
+				return;
 			}
 
 			if (imageInfo.DisplayWidth == 0) {
@@ -186,23 +190,15 @@ namespace Tomboy.InsertImage
 			}
 
 			var imageWidget = new ImageWidget (pixbuf);
-
 			imageWidget.ResizeImage (imageInfo.DisplayWidth, imageInfo.DisplayHeight);
 			imageWidget.ShowAll ();
-
-
-			imageInfo.Mark = Buffer.CreateMark (string.Format ("img {0}", Guid.NewGuid()), iter, true);
-
-			ImageBoxTag tag = (ImageBoxTag)Note.TagTable.CreateDynamicTag ("imagebox");
-			tag.ImageInfo = imageInfo;
-			imageInfo.Widget = imageWidget;
-			tag.Widget = imageWidget;
 			imageWidget.Resized += imageWidget_Resized;
 
-			TextTag [] tags = { tag };
 			if (supportUndo)
 				Buffer.Undoer.FreezeUndo ();
-			Buffer.InsertWithTags (ref iter, String.Empty, tags);
+			var anchor = Buffer.CreateChildAnchor (ref iter);
+			Window.Editor.AddChildAtAnchor (imageWidget, anchor);
+			imageInfo.SetInBufferInfo (Buffer, anchor, imageWidget);
 
 			//imageWidget.Destroyed += (o, e) =>
 			//{
@@ -213,12 +209,10 @@ namespace Tomboy.InsertImage
 
 			if (supportUndo) {
 				Buffer.Undoer.ThawUndo ();
-				var action = new InsertImageAction (this, tag, imageInfoList);
+				var action = new InsertImageAction (this, imageInfo, imageInfoList);
 				Buffer.Undoer.AddUndoAction (action);
 			}
 			imageInfoList.Add (imageInfo);
-
-			return tag;
 		}
 
 		void imageWidget_Resized (object sender, ResizeEventArgs e)

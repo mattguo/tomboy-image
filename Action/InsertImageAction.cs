@@ -8,14 +8,14 @@ namespace Tomboy.InsertImage.Action
 	public class InsertImageAction : EditAction
 	{
 		private InsertImageNoteAddin addin;
-		private ImageBoxTag imageBoxTag;
+		private ImageInfo imageInfo;
 		private List<ImageInfo> imageInfoList;
 		private int imagePosition = -1;
 
-		public InsertImageAction (InsertImageNoteAddin addin, ImageBoxTag imageBoxTag, List<ImageInfo> imageInfoList)
+		public InsertImageAction (InsertImageNoteAddin addin, ImageInfo imageInfo, List<ImageInfo> imageInfoList)
 		{
 			this.addin = addin;
-			this.imageBoxTag = imageBoxTag;
+			this.imageInfo = imageInfo;
 			this.imageInfoList = imageInfoList;
 		}
 
@@ -23,12 +23,13 @@ namespace Tomboy.InsertImage.Action
 
 		public void Undo (Gtk.TextBuffer buffer)
 		{
-			imagePosition = imageBoxTag.ImageInfo.Position;
-			imageInfoList.Remove (imageBoxTag.ImageInfo);
-			
-			TextIter imageBoxBegin = buffer.GetIterAtMark (imageBoxTag.ImageInfo.Mark);
+			imagePosition = imageInfo.Position;
+			imageInfoList.Remove (imageInfo);
+
+			TextIter imageBoxBegin = buffer.GetIterAtOffset (imagePosition);
 			TextIter imageBoxEnd = imageBoxBegin;
 			bool ret = imageBoxEnd.ForwardChar ();
+			Debug.Assert (ret, "InsertImageAction.Undo check imageBoxEnd");
 			buffer.Delete (ref imageBoxBegin, ref imageBoxEnd);
 			buffer.MoveMark (buffer.InsertMark, imageBoxBegin);
 			buffer.MoveMark (buffer.SelectionBound, imageBoxBegin);
@@ -38,7 +39,7 @@ namespace Tomboy.InsertImage.Action
 		{
 			Debug.Assert (imagePosition != -1);
 			var iter = buffer.GetIterAtOffset (imagePosition);
-			imageBoxTag = addin.InsertImage (iter, imageBoxTag.ImageInfo, false);
+			addin.InsertImage (iter, imageInfo, false);
 			buffer.MoveMark (buffer.InsertMark, iter);
 			buffer.MoveMark (buffer.SelectionBound, iter);
 			imagePosition = -1;
