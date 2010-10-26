@@ -83,6 +83,7 @@
     <Compile Include="InsertImagePreferencesFactory.cs" />
     <Compile Include="Message.cs" />
     <Compile Include="ImageWidget.cs" />
+    <Compile Include="ReflectionUtil.cs" />
     <Compile Include="ResizeEventArgs.cs" />
   </ItemGroup>
   <ItemGroup>

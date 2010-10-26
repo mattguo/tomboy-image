@@ -8,20 +8,19 @@ namespace Tomboy.InsertImage.Action
 	public class DeleteImageAction : EditAction
 	{
 		private InsertImageNoteAddin addin;
-		private ImageInfo imageInfo;
+		private EraseAction innerAction;
+		private Dictionary<int, ImageInfo> deletedImages = null;
 		private List<ImageInfo> imageInfoList;
-		private int imagePosition;
-		private EditAction innerAction;
 
-		public DeleteImageAction (InsertImageNoteAddin addin, ImageInfo imageInfo,
-			List<ImageInfo> imageInfoList, int deletePosition)
+		public DeleteImageAction (InsertImageNoteAddin addin, EraseAction innerAction, List<ImageInfo> deletedImages,
+			List<ImageInfo> imageInfoList)
 		{
 			this.addin = addin;
-			this.imageInfo = imageInfo;
+			this.innerAction = innerAction;
+			this.deletedImages = new Dictionary<int, ImageInfo> ();
+			foreach (var imageInfo in deletedImages)
+				this.deletedImages.Add (imageInfo.Position, imageInfo);
 			this.imageInfoList = imageInfoList;
-			// TODO I can't really handle the undo/redo of batch deletion for now.
-			// Recover image at the deletion_start_offset is the best I can do for now.
-			this.imagePosition = deletePosition;
 		}
 
 		#region EditAction Members
@@ -30,23 +29,26 @@ namespace Tomboy.InsertImage.Action
 		{
 			if (innerAction != null)
 				innerAction.Undo (buffer);
-			var iter = buffer.GetIterAtOffset (imagePosition);
-			addin.InsertImage (iter, imageInfo, false);
-			buffer.MoveMark (buffer.InsertMark, iter);
-			buffer.MoveMark (buffer.SelectionBound, iter);
+			foreach (var pair in deletedImages) {
+				var iter = buffer.GetIterAtOffset (pair.Key);
+				addin.InsertImage (iter, pair.Value, false);
+			}
 		}
 
 		public void Redo (Gtk.TextBuffer buffer)
 		{
-			imageInfoList.Remove (imageInfo);
-			int pos = imageInfo.Position;
-			Debug.Assert (pos == imagePosition, "DeleteImageAction.Redo, check image position" );
-			TextIter imageBoxBegin = buffer.GetIterAtOffset (pos);
-			TextIter imageBoxEnd = imageBoxBegin;
-			imageBoxEnd.ForwardChar ();
-			buffer.Delete (ref imageBoxBegin, ref imageBoxEnd);
-			buffer.MoveMark (buffer.InsertMark, imageBoxBegin);
-			buffer.MoveMark (buffer.SelectionBound, imageBoxBegin);
+			//foreach (var imageInfo in deletedImages
+			if (innerAction != null)
+				innerAction.Redo (buffer);
+			//imageInfoList.Remove (imageInfo);
+			//int pos = imageInfo.Position;
+			//Debug.Assert (pos == imagePosition, "DeleteImageAction.Redo, check image position" );
+			//TextIter imageBoxBegin = buffer.GetIterAtOffset (pos);
+			//TextIter imageBoxEnd = imageBoxBegin;
+			//imageBoxEnd.ForwardChar ();
+			//buffer.Delete (ref imageBoxBegin, ref imageBoxEnd);
+			//buffer.MoveMark (buffer.InsertMark, imageBoxBegin);
+			//buffer.MoveMark (buffer.SelectionBound, imageBoxBegin);
 		}
 
 		public void Merge (EditAction action)

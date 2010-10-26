@@ -5,6 +5,7 @@ using Gtk;
 using System.IO;
 using System.Text;
 using Tomboy.InsertImage.Action;
+using System.Reflection;
 //using AM = Mono.Addins.AddinManager;
 
 namespace Tomboy.InsertImage
@@ -53,24 +54,40 @@ namespace Tomboy.InsertImage
 		[GLib.ConnectBefore]
 		void Buffer_DeleteRange (object o, DeleteRangeArgs args)
 		{
-			// TODO can Tomboy allow me to access frozen_cnt?
-			//if (Buffer.Undoer.frozen_cnt == 0) ...
-			var iter = args.Start;
-			var imagesToDel = new List<ImageInfo> ();
-			while (iter.Offset < args.End.Offset) {
-				var imageInfo = FindImageInfoByAnchor (iter.ChildAnchor);
-				if (imageInfo != null) {
-					var action = new DeleteImageAction (this, imageInfo, imageInfoList, args.Start.Offset);
-					Buffer.Undoer.AddUndoAction (action);
-					imagesToDel.Add (imageInfo);
+			// TODO dirty hacks to get private field
+			var frozen_cnt = ReflectionUtil.GetFieldValue<uint> (
+				Buffer.Undoer, "frozen_cnt", BindingFlags.NonPublic | BindingFlags.Instance);
+			if (frozen_cnt == 0) {
+				var iter = args.Start;
+				var imagesToDel = new List<ImageInfo> ();
+				while (iter.Offset < args.End.Offset) {
+					var imageInfo = FindImageInfoByAnchor (iter.ChildAnchor);
+					if (imageInfo != null) {
+						//var action = new DeleteImageAction (this, imageInfo, imageInfoList, args.Start.Offset);
+						//Buffer.Undoer.AddUndoAction (action);
+						imagesToDel.Add (imageInfo);
+					}
+					if (!iter.ForwardChar ())
+						break;
 				}
-				if (!iter.ForwardChar ())
-					break;
-			}
-			foreach (var info in imagesToDel) {
-				info.DisplayWidth = info.Widget.ImageSize.Width;
-				info.DisplayHeight = info.Widget.ImageSize.Height;
-				imageInfoList.Remove (info);
+				if (imagesToDel.Count > 0) {
+					// TODO dirty hacks to retrieve Tomboy's private field value
+					var undoStack = ReflectionUtil.GetFieldValue<Stack<EditAction>> (
+						Buffer.Undoer, "undo_stack", BindingFlags.NonPublic | BindingFlags.Instance);
+					EditAction lastAction = null;
+					EraseAction lastEraseAction = null;
+					if (undoStack != null)
+						lastAction = undoStack.Pop ();
+					lastEraseAction = lastAction as EraseAction;
+					System.Diagnostics.Debug.Assert (lastAction != null, lastAction != null ? lastAction.GetType ().FullName : "<null>");
+					foreach (var info in imagesToDel) {
+						info.DisplayWidth = info.Widget.ImageSize.Width;
+						info.DisplayHeight = info.Widget.ImageSize.Height;
+						imageInfoList.Remove (info);
+					}
+					var action = new DeleteImageAction (this, lastEraseAction, imagesToDel, imageInfoList);
+					Buffer.Undoer.AddUndoAction (action);
+				}
 			}
 		}
 
@@ -199,7 +216,13 @@ namespace Tomboy.InsertImage
 
 			if (supportUndo)
 				Buffer.Undoer.FreezeUndo ();
+			var anchorStart = iter;
 			var anchor = Buffer.CreateChildAnchor (ref iter);
+
+			var tag = new NoteTag("dummy");
+			tag.CanUndo = false;
+			Buffer.ApplyTag (tag, anchorStart, iter);
+
 			Window.Editor.AddChildAtAnchor (imageWidget, anchor);
 			imageInfo.SetInBufferInfo (Buffer, anchor, imageWidget);
 
