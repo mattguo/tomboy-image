@@ -28,8 +28,7 @@ namespace Tomboy.InsertImage.Action
 
 			TextIter imageBoxBegin = buffer.GetIterAtOffset (imagePosition);
 			TextIter imageBoxEnd = imageBoxBegin;
-			bool ret = imageBoxEnd.ForwardChar ();
-			Debug.Assert (ret, "InsertImageAction.Undo check imageBoxEnd");
+			imageBoxEnd.ForwardChar ();
 			buffer.Delete (ref imageBoxBegin, ref imageBoxEnd);
 			buffer.MoveMark (buffer.InsertMark, imageBoxBegin);
 			buffer.MoveMark (buffer.SelectionBound, imageBoxBegin);

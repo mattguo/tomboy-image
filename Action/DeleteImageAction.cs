@@ -43,8 +43,7 @@ namespace Tomboy.InsertImage.Action
 			Debug.Assert (pos == imagePosition, "DeleteImageAction.Redo, check image position" );
 			TextIter imageBoxBegin = buffer.GetIterAtOffset (pos);
 			TextIter imageBoxEnd = imageBoxBegin;
-			bool ret = imageBoxEnd.ForwardChar ();
-			Debug.Assert (ret, "DeleteImageAction.Redo check imageBoxEnd");
+			imageBoxEnd.ForwardChar ();
 			buffer.Delete (ref imageBoxBegin, ref imageBoxEnd);
 			buffer.MoveMark (buffer.InsertMark, imageBoxBegin);
 			buffer.MoveMark (buffer.SelectionBound, imageBoxBegin);
