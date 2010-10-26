@@ -25,6 +25,8 @@ namespace Tomboy.InsertImage.Action
 		{
 			imagePosition = imageInfo.Position;
 			imageInfoList.Remove (imageInfo);
+			imageInfo.DisplayWidth = imageInfo.Widget.ImageSize.Width;
+			imageInfo.DisplayHeight = imageInfo.Widget.ImageSize.Height;
 
 			TextIter imageBoxBegin = buffer.GetIterAtOffset (imagePosition);
 			TextIter imageBoxEnd = imageBoxBegin;

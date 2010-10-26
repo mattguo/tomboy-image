@@ -67,8 +67,11 @@ namespace Tomboy.InsertImage
 				if (!iter.ForwardChar ())
 					break;
 			}
-			foreach (var info in imagesToDel)
+			foreach (var info in imagesToDel) {
+				info.DisplayWidth = info.Widget.ImageSize.Width;
+				info.DisplayHeight = info.Widget.ImageSize.Height;
 				imageInfoList.Remove (info);
+			}
 		}
 
 		private ImageInfo FindImageInfoByAnchor (TextChildAnchor anchor)
@@ -218,8 +221,11 @@ namespace Tomboy.InsertImage
 		void imageWidget_Resized (object sender, ResizeEventArgs e)
 		{
 			ImageWidget widget = (ImageWidget)sender;
-			var action = new ResizeImageAction (widget, e.OldWidth, e.OldHeight, e.NewWidth, e.NewHeight);
-			Buffer.Undoer.AddUndoAction (action);
+			ImageInfo info = imageInfoList.Find (ii => ii.Widget == widget);
+			if (info != null) {
+				var action = new ResizeImageAction (info, e.OldWidth, e.OldHeight, e.NewWidth, e.NewHeight);
+				Buffer.Undoer.AddUndoAction (action);
+			}
 		}
 	}
 }

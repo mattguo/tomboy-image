@@ -6,15 +6,15 @@ namespace Tomboy.InsertImage.Action
 {
 	public class ResizeImageAction : EditAction
 	{
-		private ImageWidget image;
+		private ImageInfo imageInfo;
 		private int oldWidth;
 		private int oldHeight;
 		private int newWidth;
 		private int newHeight;
 
-		public ResizeImageAction (ImageWidget image, int oldWidth, int oldHeight, int newWidth, int newHeight)
+		public ResizeImageAction (ImageInfo imageInfo, int oldWidth, int oldHeight, int newWidth, int newHeight)
 		{
-			this.image = image;
+			this.imageInfo = imageInfo;
 			this.oldWidth = oldWidth;
 			this.oldHeight = oldHeight;
 			this.newWidth = newWidth;
@@ -25,12 +25,12 @@ namespace Tomboy.InsertImage.Action
 
 		public void Undo (Gtk.TextBuffer buffer)
 		{
-			image.ResizeImage (oldWidth, oldHeight);
+			imageInfo.Widget.ResizeImage (oldWidth, oldHeight);
 		}
 
 		public void Redo (Gtk.TextBuffer buffer)
 		{
-			image.ResizeImage (newWidth, newHeight);
+			imageInfo.Widget.ResizeImage (newWidth, newHeight);
 		}
 
 		public void Merge (EditAction action)
