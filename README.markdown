@@ -1,4 +1,4 @@
-![screen shot]:http://mattguo.com/tomboy-image/shot1.png
+![screen shot](http://mattguo.com/tomboy-image/shot1.png)
 #Features
 * Insert image
 	* Import image content, or
@@ -9,7 +9,7 @@
 * Undo/Redo image insertion/deletion/resizing
 
 #Installation
-Download InsertImage.dll from [here]:http://mattguo.com/tomboy-image/InsertImage.dll
+Download InsertImage.dll from [here](http://mattguo.com/tomboy-image/InsertImage.dll)
 
 * On Linux
 	    mv InsertImage.dll ~/.config/tomboy/addins
