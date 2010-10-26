@@ -9,6 +9,7 @@
 
 #Installation
 Download InsertImage.dll from [here]: http://github.com/downloads/mattguo/tomboy-image/InsertImage.dll
+
 * On Linux
 	    mv InsertImage.dll ~/.config/tomboy/addins
 * On Windows
