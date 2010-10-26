@@ -13,7 +13,7 @@ namespace Tomboy.InsertImage
 	{
 		public override Gtk.Widget CreatePreferenceWidget ()
 		{
-			return new InsertImagePreferences ();
+			return new InsertImagePreferencesWidget ();
 		}
 	}
 }

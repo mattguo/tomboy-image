@@ -116,6 +116,9 @@
     <EmbeddedResource Include="missing-image.png" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="HelpNoteContent.txt" />
+  </ItemGroup>
+  <ItemGroup>
     <Folder Include="Properties\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

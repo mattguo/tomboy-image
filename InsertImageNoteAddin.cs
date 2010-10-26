@@ -21,6 +21,10 @@ namespace Tomboy.InsertImage
 
 		public override void Initialize ()
 		{
+			if (!InsertImagePreferences.HelpNoteAdded) {
+				AddHelpNote ();
+				InsertImagePreferences.HelpNoteAdded = true;
+			}
 		}
 
 		public override void OnNoteOpened ()
@@ -100,6 +104,13 @@ namespace Tomboy.InsertImage
 					return info;
 			}
 			return null;
+		}
+
+		private void AddHelpNote ()
+		{
+			Note helpNote = Note.Manager.Create ("Help of Tomboy.InsertImage");
+			var stream = Assembly.GetExecutingAssembly ().GetManifestResourceStream ("Tomboy.InsertImage.HelpNoteContent.txt");
+			helpNote.XmlContent = new StreamReader (stream).ReadToEnd ();
 		}
 
 		public override void Shutdown ()

@@ -16,7 +16,8 @@ My approach of appending data to the harddisk file won't change the result of No
 
 4. Web Image Async Download
 5. Show Image Info in the ImageWidget's context menu.
-
+6. Add a "Compress Images" menu item in Tool menu. Warn the quality loss at first time, then remember user's choice of whether warn next time.
+7. Add a tutorial note, then set preference of 'HelpNoteAdded' to true.
 
 Known issues:
 1) Can't sync
@@ -29,12 +30,7 @@ the web sync service just read note.XmlContent (but not the physical file conten
 	NoteBufferArchiver.Deserialize (buffer, value);
 And NoteBufferArchiver.Deserialize will only serialize tags in buffer.TagTable.
 
-			
+2) If we delete the image with some other texts, the undo will cause the selection range expand to N extra chars, where N is the # of deleted images.
 
-2) If we delete the image with some other texts, the undo/redo DeleteImageAction isn't correctly implemented.
-3) If we insert images consecutively, then they'll be loaded in reverse sequence next time. Or if we do undo/redo after the consecutive insertion, the sequence will also be reversed.
-The reason is due to we insert multiple images to the same offset. - Resolved by using TextChildAnchor
-
-Other:
-Tomboy.csproj seems didn't define "WIN32" in release mode, while it did so in debug mode.
+3) No Gtk.Stock icon in Ubuntu 10.10, (Tomboy is the same)
 
