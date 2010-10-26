@@ -19,12 +19,33 @@ namespace Tomboy.InsertImage
 		const string SAVE_HEAD = "[Tomboy.InsertImage]";
 		const string SAVE_TAIL = "[/Tomboy.InsertImage]";
 
+		private static object initLock = new object ();
+
+		// For debug "Add Help Note" only.
+		//static InsertImageNoteAddin ()
+		//{
+		//    InsertImagePreferences.HelpNoteAdded = false;
+		//}
+
 		public override void Initialize ()
 		{
 			if (!InsertImagePreferences.HelpNoteAdded) {
-				AddHelpNote ();
 				InsertImagePreferences.HelpNoteAdded = true;
+				try {
+					AddHelpNote ();
+				}
+				catch (Exception ex) {
+					Message.Error ("Can't add help note{0}{1}", Environment.NewLine, ex);
+				}
+
 			}
+		}
+
+		public static void AddHelpNote ()
+		{
+			Note helpNote = Tomboy.DefaultNoteManager.Create ("Help of Tomboy.InsertImage");
+			var stream = Assembly.GetExecutingAssembly ().GetManifestResourceStream ("Tomboy.InsertImage.HelpNoteContent.txt");
+			helpNote.XmlContent = new StreamReader (stream).ReadToEnd ();
 		}
 
 		public override void OnNoteOpened ()
@@ -106,13 +127,6 @@ namespace Tomboy.InsertImage
 			return null;
 		}
 
-		private void AddHelpNote ()
-		{
-			Note helpNote = Note.Manager.Create ("Help of Tomboy.InsertImage");
-			var stream = Assembly.GetExecutingAssembly ().GetManifestResourceStream ("Tomboy.InsertImage.HelpNoteContent.txt");
-			helpNote.XmlContent = new StreamReader (stream).ReadToEnd ();
-		}
-
 		public override void Shutdown ()
 		{
 			Note.Saved -= OnNoteSaved;
@@ -136,12 +150,12 @@ namespace Tomboy.InsertImage
 					imageInfo.DisplayWidth = displaySize.Width;
 					imageInfo.DisplayHeight = displaySize.Height;
 					sb.AppendFormat ("{0}:", imageInfo.Position);
-					sb.Append (imageInfo.SaveAsString());
+					sb.Append (imageInfo.SaveAsString ());
 					sb.Append (";");
 				}
 				sb.Append (SAVE_TAIL);
 				sb.Append (fileContent.Substring (contentEndIndex));
-				File.WriteAllText (Note.FilePath, sb.ToString());
+				File.WriteAllText (Note.FilePath, sb.ToString ());
 			}
 		}
 
@@ -151,9 +165,9 @@ namespace Tomboy.InsertImage
 			start.ForwardLine ();
 			TextIter end = Buffer.EndIter;
 			TextIter saveStart, saveEnd, tmpIter;
-			bool foundSaveInfo = start.ForwardSearch(SAVE_HEAD, TextSearchFlags.TextOnly, out saveStart, out tmpIter, end);
+			bool foundSaveInfo = start.ForwardSearch (SAVE_HEAD, TextSearchFlags.TextOnly, out saveStart, out tmpIter, end);
 			if (foundSaveInfo) {
-				foundSaveInfo = saveStart.ForwardSearch(SAVE_TAIL, TextSearchFlags.TextOnly, out tmpIter, out saveEnd, end);
+				foundSaveInfo = saveStart.ForwardSearch (SAVE_TAIL, TextSearchFlags.TextOnly, out tmpIter, out saveEnd, end);
 				if (foundSaveInfo) {
 					Buffer.Undoer.FreezeUndo ();
 					string imageElementValue = Buffer.GetSlice (saveStart, saveEnd, true);
@@ -166,10 +180,10 @@ namespace Tomboy.InsertImage
 							break;
 						int colonIndex = saveInfo.IndexOf (":");
 						if (colonIndex == -1)
-							throw new FormatException (Catalog.GetString("Invalid <image> format"));
+							throw new FormatException (Catalog.GetString ("Invalid <image> format"));
 						int offset = int.Parse (saveInfo.Substring (0, colonIndex));
-						ImageInfo info = ImageInfo.FromSavedString (saveInfo.Substring(colonIndex + 1), true);
-						InsertImage (Buffer.GetIterAtOffset(offset), info, false);
+						ImageInfo info = ImageInfo.FromSavedString (saveInfo.Substring (colonIndex + 1), true);
+						InsertImage (Buffer.GetIterAtOffset (offset), info, false);
 					}
 					Buffer.Undoer.ThawUndo ();
 				}
@@ -191,7 +205,8 @@ namespace Tomboy.InsertImage
 			ImageInfo imageInfo = null;
 			try {
 				imageInfo = chooser.ChooseImageInfo (Note.Window);
-			} catch {
+			}
+			catch {
 				// TODO: Report the open file error.
 				imageInfo = null;
 			}
@@ -207,7 +222,8 @@ namespace Tomboy.InsertImage
 			Gdk.Pixbuf pixbuf = null;
 			try {
 				pixbuf = new Gdk.Pixbuf (imageInfo.FileContent);
-			} catch {
+			}
+			catch {
 				pixbuf = null;
 			}
 			if (pixbuf == null) {
@@ -230,7 +246,7 @@ namespace Tomboy.InsertImage
 			var anchorStart = iter;
 			var anchor = Buffer.CreateChildAnchor (ref iter);
 
-			var tag = new NoteTag("dummy");
+			var tag = new NoteTag ("dummy");
 			tag.CanUndo = false;
 			Buffer.ApplyTag (tag, anchorStart, iter);
 
