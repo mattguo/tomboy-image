@@ -25,10 +25,13 @@ namespace Tomboy.InsertImage
 		Gtk.Menu contextMenu = null;
 
 		Gdk.Size imageSize;
-
-		const int selectionBorder = 8;
-
+		
 		internal bool AllowResize = true;
+
+		public const int SelectionBorder = 8;
+		public const int MinWidth = 12;
+		public const int MinHeight = 12;
+				
 
 		public ImageWidget (Pixbuf pixbuf)
 		{
@@ -88,35 +91,31 @@ namespace Tomboy.InsertImage
 		{
 			int oldWidth = child.Allocation.Width;
 			int oldHeight = child.Allocation.Height;
-			ResumeImageSizeCore ();
+			ResizeImage (originalPixbuf.Width, originalPixbuf.Height);
 			OnResized (oldWidth, oldHeight, originalPixbuf.Width, originalPixbuf.Height);
 		}
 
 		public void ResizeImage (int width, int height)
 		{
-			if (width <= 0 || height <= 0)
-				return;
-			if (width == originalPixbuf.Width && height == originalPixbuf.Height)
-				ResumeImageSizeCore ();
-			else
-				ResizeImage (width, height, InterpType.Bilinear);
+			ResizeImage (width, height, InterpType.Bilinear);
 		}
 
 		public void ResizeImage (int width, int height, InterpType interType)
 		{
-			child.Pixbuf = originalPixbuf.ScaleSimple (width, height, interType);
+			if (width <= 0 || height <= 0)
+				return;
+			if (width < MinWidth)
+				width = MinWidth;
+			if (height < MinHeight)
+				height = MinHeight;
+			if (width == originalPixbuf.Width && height == originalPixbuf.Height)
+				child.Pixbuf = originalPixbuf;
+			else
+				child.Pixbuf = originalPixbuf.ScaleSimple (width, height, interType);
 			child.SetSizeRequest (width, height);
 			imageSize.Width = width;
 			imageSize.Height = height;
 			//QueueDraw ();
-		}
-
-		private void ResumeImageSizeCore ()
-		{
-			child.Pixbuf = originalPixbuf;
-			child.SetSizeRequest (originalPixbuf.Width, originalPixbuf.Height);
-			imageSize.Width = originalPixbuf.Width;
-			imageSize.Height = originalPixbuf.Height;
 		}
 
 		private void OnResized (int oldWidth, int oldHeight, int newWidth, int newHeight)
@@ -141,23 +140,8 @@ namespace Tomboy.InsertImage
 		protected override bool OnMotionNotifyEvent (Gdk.EventMotion ev)
 		{
 			if (resizingX || resizingY) {
-				int minWidth = selectionBorder * 2;
-				int minHeight = selectionBorder * 2;
-				int newWidth, newHeight;
-				if (resizingX) {
-					newWidth = (int) (ev.X + difX);
-					if (newWidth < minWidth)
-						newWidth = minWidth;
-					
-				} else newWidth = child.Allocation.Width;
-
-				if (resizingY) {
-					newHeight = (int) (ev.Y + difY);
-					if (newHeight < minHeight)
-						newHeight = minHeight;
-					child.HeightRequest = newHeight;
-				} else newHeight = child.Allocation.Height;
-
+				int newWidth = resizingX ? (int)(ev.X + difX) : child.Allocation.Width;
+				int newHeight = resizingY ? (int)(ev.Y + difY) : child.Allocation.Height;
 				ResizeImage (newWidth, newHeight, InterpType.Nearest);
 			} else if (AllowResize) {
 				if (GetAreaResizeXY ().Contains ((int) ev.X, (int) ev.Y))
@@ -210,19 +194,19 @@ namespace Tomboy.InsertImage
 		Rectangle GetAreaResizeY ()
 		{
 			Gdk.Rectangle rect = child.Allocation;
-			return new Gdk.Rectangle (rect.X, rect.Y + rect.Height - selectionBorder, rect.Width - selectionBorder, selectionBorder);
+			return new Gdk.Rectangle (rect.X, rect.Y + rect.Height - SelectionBorder, rect.Width - SelectionBorder, SelectionBorder);
 		}
 
 		Rectangle GetAreaResizeX ()
 		{
 			Gdk.Rectangle rect = child.Allocation;
-			return new Gdk.Rectangle (rect.X + rect.Width - selectionBorder, rect.Y, selectionBorder, rect.Height - selectionBorder);
+			return new Gdk.Rectangle (rect.X + rect.Width - SelectionBorder, rect.Y, SelectionBorder, rect.Height - SelectionBorder);
 		}
 
 		Rectangle GetAreaResizeXY ()
 		{
 			Gdk.Rectangle rect = child.Allocation;
-			return new Gdk.Rectangle (rect.X + rect.Width - selectionBorder, rect.Y + rect.Height - selectionBorder, selectionBorder, selectionBorder);
+			return new Gdk.Rectangle (rect.X + rect.Width - SelectionBorder, rect.Y + rect.Height - SelectionBorder, SelectionBorder, SelectionBorder);
 		}
 
 		protected override bool OnButtonReleaseEvent (Gdk.EventButton ev)

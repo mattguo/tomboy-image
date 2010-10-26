@@ -37,18 +37,11 @@ namespace Tomboy.InsertImage.Action
 
 		public void Redo (Gtk.TextBuffer buffer)
 		{
-			//foreach (var imageInfo in deletedImages
+			foreach (var imageInfo in deletedImages.Values) {
+				imageInfoList.Remove (imageInfo);
+			}
 			if (innerAction != null)
 				innerAction.Redo (buffer);
-			//imageInfoList.Remove (imageInfo);
-			//int pos = imageInfo.Position;
-			//Debug.Assert (pos == imagePosition, "DeleteImageAction.Redo, check image position" );
-			//TextIter imageBoxBegin = buffer.GetIterAtOffset (pos);
-			//TextIter imageBoxEnd = imageBoxBegin;
-			//imageBoxEnd.ForwardChar ();
-			//buffer.Delete (ref imageBoxBegin, ref imageBoxEnd);
-			//buffer.MoveMark (buffer.InsertMark, imageBoxBegin);
-			//buffer.MoveMark (buffer.SelectionBound, imageBoxBegin);
 		}
 
 		public void Merge (EditAction action)
