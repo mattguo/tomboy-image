@@ -276,6 +276,12 @@ namespace Tomboy.InsertImage
 			saveAs.Image = new Gtk.Image (Gtk.Stock.SaveAs, Gtk.IconSize.Menu);
 			saveAs.Activated += (o, e) => SaveImage (Note.Window, imageInfo);
 			imageWidget.ContextMenu.Append (saveAs);
+
+			Gtk.ImageMenuItem prop = new Gtk.ImageMenuItem (Catalog.GetString ("Properties"));
+			prop.Image = new Gtk.Image (Gtk.Stock.Properties, Gtk.IconSize.Menu);
+			prop.Activated += (o, e) => ShowImageProperties (Note.Window, imageInfo);
+			imageWidget.ContextMenu.Append (prop);
+
 			imageWidget.ContextMenu.ShowAll ();
 		}
 
@@ -298,6 +304,12 @@ namespace Tomboy.InsertImage
 				}
 			}
 			fc.Destroy ();
+		}
+
+		private void ShowImageProperties (Window parent, ImageInfo imageInfo)
+		{
+			// TODO
+			Message.Info ("Not implemented yet");
 		}
 
 		private void imageWidget_Resized (object sender, ResizeEventArgs e)
