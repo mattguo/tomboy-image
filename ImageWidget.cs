@@ -25,20 +25,20 @@ namespace Tomboy.InsertImage
 		Gtk.Menu contextMenu = null;
 
 		Gdk.Size imageSize;
-		
+
 		internal bool AllowResize = true;
 
 		public const int SelectionBorder = 8;
 		public const int MinWidth = 12;
 		public const int MinHeight = 12;
-				
+
 
 		public ImageWidget (Pixbuf pixbuf)
 		{
 			resizingX = resizingY = false;
 			this.CanFocus = true;
 			this.Events = EventMask.ButtonPressMask | EventMask.ButtonReleaseMask | EventMask.PointerMotionMask;
-			this.child = new Gtk.Image();
+			this.child = new Gtk.Image ();
 			this.child.Pixbuf = pixbuf;
 			originalPixbuf = pixbuf;
 			Add (child);
@@ -64,14 +64,6 @@ namespace Tomboy.InsertImage
 					//                       Gdk.ModifierType.ControlMask,
 					//                       Gtk.AccelFlags.Visible);
 					contextMenu.Append (resumeSize);
-
-					Gtk.ImageMenuItem saveAs = new Gtk.ImageMenuItem (
-						Catalog.GetString ("Save as..."));
-					saveAs.Image = new Gtk.Image (Gtk.Stock.SaveAs, Gtk.IconSize.Menu);
-					saveAs.Activated += (o, e) => SaveImage ();
-					contextMenu.Append (saveAs);
-
-					contextMenu.ShowAll ();
 				}
 				return contextMenu;
 			}
@@ -144,11 +136,11 @@ namespace Tomboy.InsertImage
 				int newHeight = resizingY ? (int)(ev.Y + difY) : child.Allocation.Height;
 				ResizeImage (newWidth, newHeight, InterpType.Nearest);
 			} else if (AllowResize) {
-				if (GetAreaResizeXY ().Contains ((int) ev.X, (int) ev.Y))
+				if (GetAreaResizeXY ().Contains ((int)ev.X, (int)ev.Y))
 					GdkWindow.Cursor = cursorXY;
-				else if (GetAreaResizeX ().Contains ((int) ev.X, (int) ev.Y))
+				else if (GetAreaResizeX ().Contains ((int)ev.X, (int)ev.Y))
 					GdkWindow.Cursor = cursorX;
-				else if (GetAreaResizeY ().Contains ((int) ev.X, (int) ev.Y))
+				else if (GetAreaResizeY ().Contains ((int)ev.X, (int)ev.Y))
 					GdkWindow.Cursor = cursorY;
 				else
 					GdkWindow.Cursor = cursorNormal;
@@ -230,12 +222,6 @@ namespace Tomboy.InsertImage
 				//}
 			}
 			return base.OnButtonReleaseEvent (ev);
-		}
-
-		private void SaveImage ()
-		{
-			// TODO
-			Message.Error ("Not implemented yet.");
 		}
 	}
 }

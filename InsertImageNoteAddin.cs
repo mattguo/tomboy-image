@@ -240,6 +240,7 @@ namespace Tomboy.InsertImage
 			var imageWidget = new ImageWidget (pixbuf);
 			imageWidget.ResizeImage (imageInfo.DisplayWidth, imageInfo.DisplayHeight);
 			imageWidget.ShowAll ();
+			InitImageWidgetContextMenu (imageWidget, imageInfo);
 			imageWidget.Resized += imageWidget_Resized;
 
 			if (supportUndo)
@@ -269,7 +270,37 @@ namespace Tomboy.InsertImage
 			imageInfoList.Add (imageInfo);
 		}
 
-		void imageWidget_Resized (object sender, ResizeEventArgs e)
+		private void InitImageWidgetContextMenu (ImageWidget imageWidget, ImageInfo imageInfo)
+		{
+			Gtk.ImageMenuItem saveAs = new Gtk.ImageMenuItem (Catalog.GetString ("Save as..."));
+			saveAs.Image = new Gtk.Image (Gtk.Stock.SaveAs, Gtk.IconSize.Menu);
+			saveAs.Activated += (o, e) => SaveImage (Note.Window, imageInfo);
+			imageWidget.ContextMenu.Append (saveAs);
+			imageWidget.ContextMenu.ShowAll ();
+		}
+
+		private void SaveImage (Window parent, ImageInfo imageInfo)
+		{
+			var fc = new FileChooserDialog (
+				string.Format (Catalog.GetString ("Save {0} in"), Path.GetFileName (imageInfo.FilePath)),
+				parent,
+				FileChooserAction.SelectFolder,
+				Catalog.GetString ("Cancel"), ResponseType.Cancel,
+				Catalog.GetString ("Select"), ResponseType.Accept);
+			if (fc.Run () == (int)ResponseType.Accept) {
+				string imagePath = null;
+				try {
+					imagePath = imageInfo.SaveAs (fc.Filename);
+					Message.Info (Catalog.GetString ("Saved \"{0}\""), imagePath);
+				}
+				catch (Exception ex) {
+					Message.Error (Catalog.GetString("Failed to save image, {0}"), ex);
+				}
+			}
+			fc.Destroy ();
+		}
+
+		private void imageWidget_Resized (object sender, ResizeEventArgs e)
 		{
 			ImageWidget widget = (ImageWidget)sender;
 			ImageInfo info = imageInfoList.Find (ii => ii.Widget == widget);

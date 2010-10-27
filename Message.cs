@@ -27,6 +27,8 @@ namespace Tomboy.InsertImage
 			Gtk.Dialog dlg = new Gtk.Dialog ("Tomboy.InsertImage - " + Catalog.GetString(title), null,
 											 Gtk.DialogFlags.Modal | Gtk.DialogFlags.DestroyWithParent);
 			var text = new Gtk.TextView ();
+			text.WrapMode = Gtk.WrapMode.Word;
+			text.Editable = false;
 			if (args.Length > 0)
 				format = string.Format (format, args);
 			text.Buffer.Text = format;
@@ -34,7 +36,7 @@ namespace Tomboy.InsertImage
 			scroll.Add (text);
 			dlg.AddButton (Catalog.GetString("Close"), Gtk.ResponseType.Close);
 			dlg.VBox.PackStart (scroll, true, true, 0);
-			dlg.SetSizeRequest (500, 500);
+			dlg.SetSizeRequest (300, 240);
 			scroll.ShowAll ();
 			dlg.Run ();
 			dlg.Destroy ();

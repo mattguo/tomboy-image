@@ -97,6 +97,15 @@ namespace Tomboy.InsertImage
 		{
 		}
 
+		public string SaveAs (string dirPath)
+		{
+			if (FileContent == null || FileContent.Length == 0)
+				throw new Exception ("Empty File");
+			string savePath = Path.Combine (dirPath, Path.GetFileName (FilePath));
+			File.WriteAllBytes (savePath, FileContent);
+			return savePath;
+		}
+
 		public string FilePath { get; set; }
 		public byte [] FileContent { get; set; }
 
