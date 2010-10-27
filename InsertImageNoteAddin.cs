@@ -19,8 +19,6 @@ namespace Tomboy.InsertImage
 		const string SAVE_HEAD = "[Tomboy.InsertImage]";
 		const string SAVE_TAIL = "[/Tomboy.InsertImage]";
 
-		private static object initLock = new object ();
-
 		// For debug "Add Help Note" only.
 		//static InsertImageNoteAddin ()
 		//{
@@ -37,15 +35,18 @@ namespace Tomboy.InsertImage
 				catch (Exception ex) {
 					Message.Error ("Can't add help note{0}{1}", Environment.NewLine, ex);
 				}
-
 			}
+			//} else if (newHelpNoteId != null && Note.Id == newHelpNoteId) {
+			//    Note.Buffer.Undoer.ClearUndoHistory ();
+			//}
 		}
 
 		public static void AddHelpNote ()
 		{
-			Note helpNote = Tomboy.DefaultNoteManager.Create ("Help of Tomboy.InsertImage");
+			Note helpNote = Tomboy.DefaultNoteManager.Create ("Using Tomboy.InsertImage");
 			var stream = Assembly.GetExecutingAssembly ().GetManifestResourceStream ("Tomboy.InsertImage.HelpNoteContent.txt");
 			helpNote.XmlContent = new StreamReader (stream).ReadToEnd ();
+			helpNote.Buffer.Undoer.ClearUndoHistory ();
 		}
 
 		public override void OnNoteOpened ()
