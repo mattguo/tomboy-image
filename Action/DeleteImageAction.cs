@@ -56,6 +56,8 @@ namespace Tomboy.InsertImage.Action
 
 		public void Destroy ()
 		{
+			if (innerAction != null)
+				innerAction.Destroy ();
 		}
 
 		#endregion
