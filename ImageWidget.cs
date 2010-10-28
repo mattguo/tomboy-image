@@ -132,8 +132,17 @@ namespace Tomboy.InsertImage
 		protected override bool OnMotionNotifyEvent (Gdk.EventMotion ev)
 		{
 			if (resizingX || resizingY) {
-				int newWidth = resizingX ? (int)(ev.X + difX) : child.Allocation.Width;
-				int newHeight = resizingY ? (int)(ev.Y + difY) : child.Allocation.Height;
+				int newWidth = resizingX ? (int)(ev.X + difX) : oldChildWidth;
+				int newHeight = resizingY ? (int)(ev.Y + difY) : oldChildHeight;
+				if (resizingX && resizingY) {
+					//Keep the aspect ratio.
+					double widthRatio = (double)newWidth / (double)oldChildWidth;
+					double heightRatio = (double)newHeight / (double)oldChildHeight;
+					if (widthRatio > heightRatio)
+						newHeight = (int) (oldChildHeight * widthRatio);
+					else
+						newWidth = (int) (oldChildWidth * heightRatio);
+				}
 				ResizeImage (newWidth, newHeight, InterpType.Nearest);
 			} else if (AllowResize) {
 				if (GetAreaResizeXY ().Contains ((int)ev.X, (int)ev.Y))
