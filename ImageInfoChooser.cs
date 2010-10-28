@@ -60,43 +60,44 @@ namespace Tomboy.InsertImage
 
 			FileFilter filter = new FileFilter ();
 			filter.Name = Catalog.GetString ("All Images");
-			filter.AddPattern ("*.png");
-			filter.AddPattern ("*.jpg");
-			filter.AddPattern ("*.jpeg");
-			filter.AddPattern ("*.jpe");
-			filter.AddPattern ("*.jfif");
-			filter.AddPattern ("*.bmp");
-			filter.AddPattern ("*.gif");
-			filter.AddPattern ("*.tiff");
+			filter.AddPattern ("*.[pP][nN][gG]");
+			filter.AddPattern ("*.[jJ][pP][gG]");
+			filter.AddPattern ("*.[jJ][pP][eE][gG]");
+			filter.AddPattern ("*.[jJ][pP][eE]");
+			filter.AddPattern ("*.[jJ][fF][iI][fF]");
+			filter.AddPattern ("*.[gG][iI][fF]");
+			filter.AddPattern ("*.[bB][mM][pP]");
+			filter.AddPattern ("*.[tT][iI][fF][fF]");
+			filter.AddPattern ("*.[tT][iI][fF]");
 			fc.AddFilter (filter);
 
 			FileFilter pngFilter = new FileFilter ();
 			pngFilter.Name = "PNG (*.PNG)";
-			pngFilter.AddPattern ("*.png");
+			pngFilter.AddPattern ("*.[pP][nN][gG]");
 			fc.AddFilter (pngFilter);
 
 			FileFilter jpegFilter = new FileFilter ();
 			jpegFilter.Name = "JPEG (*.JPG;*.JPEG;*.JPE;*.JFIF)";
-			jpegFilter.AddPattern ("*.jpg");
-			jpegFilter.AddPattern ("*.jpeg");
-			jpegFilter.AddPattern ("*.jpe");
-			jpegFilter.AddPattern ("*.jfif");
+			jpegFilter.AddPattern ("*.[jJ][pP][gG]");
+			jpegFilter.AddPattern ("*.[jJ][pP][eE][gG]");
+			jpegFilter.AddPattern ("*.[jJ][pP][eE]");
+			jpegFilter.AddPattern ("*.[jJ][fF][iI][fF]");
 			fc.AddFilter (jpegFilter);
 
 			FileFilter gifFilter = new FileFilter ();
 			gifFilter.Name = "GIF (*.GIF)";
-			gifFilter.AddPattern ("*.gif");
+			gifFilter.AddPattern ("*.[gG][iI][fF]");
 			fc.AddFilter (gifFilter);
 
 			FileFilter bmpFilter = new FileFilter ();
 			bmpFilter.Name = "BMP (*.BMP)";
-			bmpFilter.AddPattern ("*.bmp");
+			bmpFilter.AddPattern ("*.[bB][mM][pP]");
 			fc.AddFilter (bmpFilter);
 
 			FileFilter tiffFilter = new FileFilter ();
 			tiffFilter.Name = "TIFF (*.TIFF;*.TIF)";
-			tiffFilter.AddPattern ("*.tiff");
-			tiffFilter.AddPattern ("*.tif");
+			tiffFilter.AddPattern ("*.[tT][iI][fF][fF]");
+			tiffFilter.AddPattern ("*.[tT][iI][fF]");
 			fc.AddFilter (tiffFilter);
 
 			FileFilter all = new FileFilter ();

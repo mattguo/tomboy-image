@@ -288,7 +288,7 @@ namespace Tomboy.InsertImage
 		private void SaveImage (Window parent, ImageInfo imageInfo)
 		{
 			var fc = new FileChooserDialog (
-				string.Format (Catalog.GetString ("Save {0} in"), Path.GetFileName (imageInfo.FilePath)),
+				string.Format (Catalog.GetString ("Save \"{0}\" in"), Path.GetFileName (imageInfo.FilePath)),
 				parent,
 				FileChooserAction.SelectFolder,
 				Catalog.GetString ("Cancel"), ResponseType.Cancel,
